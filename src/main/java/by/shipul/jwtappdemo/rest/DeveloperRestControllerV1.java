@@ -1,6 +1,7 @@
 package by.shipul.jwtappdemo.rest;
 
 import by.shipul.jwtappdemo.model.Developer;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,11 +20,13 @@ public class DeveloperRestControllerV1 {
     ).collect(Collectors.toList());
 
     @GetMapping
+    @PreAuthorize("hasAuthority('developers:read')")
     public List<Developer> getAll() {
         return developers;
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('developers:read')")
     public Developer getById(@PathVariable Long id) {
         return developers.stream()
                 .filter(developer -> developer.getId().equals(id))
@@ -32,12 +35,14 @@ public class DeveloperRestControllerV1 {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('developers:write')")
     public Developer create(@RequestBody Developer developer){
         developers.add(developer);
         return developer;
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('developers:write')")
     public void delete(@PathVariable Long id) {
         developers.removeIf(developer -> developer.getId().equals(id));
     }
