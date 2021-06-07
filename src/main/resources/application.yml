@@ -10,3 +10,7 @@ spring:
       schema-locations: classpath:data/table.sql
       data-locations: classpath:data/data.sql
       enabled: true
+token:
+    secret: shipul
+    validity: 100500
+    header: auth
