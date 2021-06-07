@@ -2,8 +2,12 @@ package by.shipul.jwtappdemo.config;
 
 
 import by.shipul.jwtappdemo.model.Role;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,7 +23,11 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Qualifier("userDetailsServiceImpl")
+    private final UserDetailsService userDetailsService;
 
     //TODO https://www.youtube.com/watch?v=7uxROJ1nduk (46.51)
     @Bean
@@ -45,6 +53,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder(12);
     }
 
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(daoAuthenticationProvider());
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -55,8 +69,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .formLogin()
-                .loginPage("/auth/login").permitAll()
-                .defaultSuccessUrl("/auth/success")
                 .and()
                 .logout()
                 .logoutRequestMatcher(new AntPathRequestMatcher("/auth/logout", "POST"))
@@ -64,5 +76,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .clearAuthentication(true);
+    }
+
+    @Bean
+    protected DaoAuthenticationProvider daoAuthenticationProvider(){
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+        return daoAuthenticationProvider;
     }
 }
